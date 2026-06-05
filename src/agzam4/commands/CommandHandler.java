@@ -1,0 +1,41 @@
+package agzam4.commands;
+
+import agzam4.CommandsManager.CommandSender;
+import agzam4.CommandsManager.ReceiverType;
+import arc.struct.Seq;
+import arc.util.Nullable;
+import mindustry.Vars;
+import mindustry.gen.Groups;
+
+public abstract class CommandHandler<T> {
+
+	public String text = name(), parms = "", desc = "";
+	
+	private String name() {
+		String name = getClass().getSimpleName().toLowerCase();
+		if(name.endsWith("command")) name = name.substring(0, name.length() - "command".length());
+		return name;
+	}
+	
+	public abstract void command(String[] args, CommandSender sender, T receiver, ReceiverType type);
+
+	public @Nullable Seq<?> complete(String[] args, T receiver, ReceiverType type) {
+		return null;
+	}
+	
+	public static boolean require(boolean b, CommandSender receiver, String string) {
+		if(b) receiver.sendMessage(string);
+		return b;
+	}
+
+	public static Seq<String> completePlayers() {
+		Seq<String> names = new Seq<String>(Groups.player.size());
+		Groups.player.each(p -> names.add(p.name));
+		return names;
+	}
+	
+	public static Seq<String> completeTeams() {
+		return Vars.state.teams.present.map(d -> d.team.name);
+	}
+	
+}
