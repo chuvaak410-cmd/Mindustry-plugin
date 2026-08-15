@@ -1,6 +1,6 @@
 package agzam4.commands.admin;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.commands.CommandHandler;
@@ -35,7 +35,7 @@ public class AdminCommand extends CommandHandler<Player> {
 			if(add) Vars.netServer.admins.adminPlayer(target.id, playert == null ? target.adminUsid : playert.usid());
 			else Vars.netServer.admins.unAdminPlayer(target.id);
 			if(playert != null) playert.admin(add);
-			sender.sendMessage("[gold]Изменен статус администратора игрока: [" + Game.colorToHex(playert.color) + "]" + Strings.stripColors(target.lastName));
+			sender.sendMessage("[gold]Изменен статус администратора игрока: [" + MindustryGameRuntimeFacade.colorToHex(playert.color) + "]" + Strings.stripColors(target.lastName));
 		} else {
 			sender.sendMessage("[red]Игрока с таким именем или ID найти не удалось. При добавлении администратора по имени убедитесь, что он подключен к Сети; в противном случае используйте его UUID");
 		}

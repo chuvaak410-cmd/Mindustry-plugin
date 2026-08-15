@@ -2,15 +2,17 @@ package agzam4.bot;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import agzam4.bot.registry.TSenderRegistry;
+import agzam4.bot.strategy.ITSenderPermissionStrategy;
+import agzam4.bot.strategy.TSenderPermissionStrategyImpl;
 import arc.struct.LongMap;
-import arc.struct.ObjectMap;
 import arc.struct.ObjectSet;
 import arc.util.serialization.JsonValue;
 import arc.util.serialization.JsonWriter;
 
 public class TSender {
 
-	private static ObjectMap<String, LongMap<TSender>> senders = new ObjectMap<>();
+	private static final ITSenderPermissionStrategy permissionStrategy = new TSenderPermissionStrategyImpl();
 
 	private final ObjectSet<String> tags = new ObjectSet<String>();
 	
@@ -66,12 +68,12 @@ public class TSender {
 
 	public void addTag(String tag) {
 		tags.add(tag);
-		senders(tag).put(this.id, this);
+		TSenderRegistry.instance().put(tag, this);
 	}
-	
+
 	public void removeTag(String tag) {
 		tags.remove(tag);
-		senders(tag).remove(id);
+		TSenderRegistry.instance().remove(tag, id);
 	}
 
 	public void addPermission(String permission) {
@@ -88,18 +90,18 @@ public class TSender {
 //	}
 
 	public boolean hasPermissionKey(String key) {
-		return permissions.contains(key);
+		return permissionStrategy.hasPermissionKey(permissions, key);
 	}
 	public boolean hasChatPermissionKey(String key) {
-		return permissions.contains("$" + key);
+		return permissionStrategy.hasChatPermissionKey(permissions, key);
 	}
-	
+
 	public boolean hasPermission(String permission) {
-		return permissions.contains(permission) || permissions.contains("all");
+		return permissionStrategy.hasPermission(permissions, permission);
 	}
-	
+
 	public boolean hasOnlyChatPermission(String permission) {
-		return permissions.contains("$" + permission) || (permissions.contains("$all") && !permissions.contains(permission));
+		return permissionStrategy.hasOnlyChatPermission(permissions, permission);
 	}
 	
 	public final String uid() {
@@ -119,12 +121,7 @@ public class TSender {
 	}
 	
 	public static LongMap<TSender> senders(String tag) {
-		var list = senders.get(tag);
-		if(list == null) {
-			list = new LongMap<>();
-			senders.put(tag, list);
-		}
-		return list;
+		return TSenderRegistry.instance().senders(tag);
 	}
 
 	public String permissionsString(String separator) {

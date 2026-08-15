@@ -1,6 +1,6 @@
 package agzam4.commands.server;
 
-import agzam4.AgzamPlugin;
+import agzam4.EnterpriseGradeMindustryServerPluginApplicationEntryPoint;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.commands.CommandHandler;
@@ -58,7 +58,7 @@ public class DoorscapCommand extends CommandHandler<Object> {
 		try {
 			int lastDoorsCup = Server.doorsCap;
 			Server.doorsCap = Strings.parseInt(arg[0], -1);
-			Core.settings.put(AgzamPlugin.name() + "-doors-cap", Server.doorsCap);
+			Core.settings.put(EnterpriseGradeMindustryServerPluginApplicationEntryPoint.name() + "-doors-cap", Server.doorsCap);
 			setup();
 			if(Server.doorsCap >= 0) {
 				sender.sendMessage(type.format("doorscap.set", lastDoorsCup, Server.doorsCap));

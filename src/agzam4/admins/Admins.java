@@ -1,9 +1,11 @@
 package agzam4.admins;
 
-import agzam4.bot.TUser.MessageData;
+import agzam4.admins.io.AdminPersistenceGatewayImpl;
+import agzam4.admins.io.IAdminPersistenceGateway;
+import agzam4.admins.registry.AdminRegistry;
 import agzam4.commands.Permissions;
-import agzam4.commands.Server;
-import agzam4.utils.Log;
+import agzam4.admins.strategy.AdminPermissionStrategyImpl;
+import agzam4.admins.strategy.IAdminPermissionStrategy;
 import arc.files.Fi;
 import arc.struct.ObjectMap;
 import arc.util.Nullable;
@@ -13,12 +15,14 @@ import mindustry.net.Administration.PlayerInfo;
 
 public class Admins {
 
-	private static ObjectMap<PlayerInfo, AdminData> admins;
+	private static final IAdminPermissionStrategy permissionStrategy = new AdminPermissionStrategyImpl();
+	private static final IAdminPersistenceGateway persistenceGateway = new AdminPersistenceGatewayImpl();
+
 	private static Fi save;
-	
+
 	public static void init() {
 		save = new Fi(Vars.saveDirectory + "/admins_data.txt", Vars.saveDirectory.type());
-		admins = new ObjectMap<>();
+		AdminRegistry.instance().reset();
 //		Vars.netServer.admins.getAdmins().forEach(i -> admins.put(i, AdminData.from(i)));
 		load();
 	}
@@ -27,37 +31,26 @@ public class Admins {
 		if(player == null) return null;
 		return adminData(player.getInfo());
 	}
-	
+
 	public static @Nullable AdminData adminData(@Nullable PlayerInfo info) {
 		if(info == null) return null;
-		return admins.get(info);
+		return AdminRegistry.instance().get(info);
 	}
 
 	public static boolean has(Object any, String string) {
-		if(any instanceof Player player) return has(player, string);
-		if(any instanceof Server) return true;
-		if(any instanceof MessageData data) return data.hasPermissions(string);
-		Log.warn("unimpleneted righs check for @", any.getClass());
-		return false;
+		return permissionStrategy.has(any, string);
 	}
-	
+
 	public static boolean has(Object any, Permissions permissions) {
-		if(any instanceof Player player) return has(player, permissions);
-		if(any instanceof Server) return true;
-		Log.warn("unimpleneted righs check for @", any.getClass());
-		return false;
+		return permissionStrategy.has(any, permissions);
 	}
-	
+
 	public static boolean has(Player player, String string) {
-		if(player.admin) return true;
-		var data = adminData(player.getInfo());
-		if(data == null) return false;
-		if(!player.usid().equals(data.usid)) return false;
-		return data.has(string);
+		return permissionStrategy.has(player, string);
 	}
-	
+
 	public static boolean has(Player player, Permissions permissions) {
-		return has(player, permissions.name);
+		return permissionStrategy.has(player, permissions);
 	}
 
 	/**
@@ -66,10 +59,10 @@ public class Admins {
 	 */
 	public static boolean add(@Nullable Player player) {
 		if(player == null) return false;
-		if(admins.containsKey(player.getInfo())) return false;
+		if(AdminRegistry.instance().containsKey(player.getInfo())) return false;
 		AdminData data = AdminData.from(player.getInfo());
 		data.usid = player.usid();
-		admins.put(player.getInfo(), data);
+		AdminRegistry.instance().put(player.getInfo(), data);
 		return true;
 	}
 
@@ -79,12 +72,12 @@ public class Admins {
 	 */
 	public static boolean remove(@Nullable Player player) {
 		if(player == null) return false;
-		return admins.remove(player.getInfo()) != null;
+		return AdminRegistry.instance().remove(player.getInfo());
 	}
 
 	public static boolean remove(@Nullable PlayerInfo player) {
 		if(player == null) return false;
-		return admins.remove(player) != null;
+		return AdminRegistry.instance().remove(player);
 	}
 
 	public static boolean refresh(@Nullable Player player) {
@@ -94,38 +87,16 @@ public class Admins {
 		data.usid = player.usid();
 		return true;
 	}
-	
+
 	public static void load() {
-		if(!save.exists()) return;
-		String[] data = save.readString().split("\n");
-		for (int i = 0; i < data.length; i++) {
-			String[] args = data[i].split(" ");
-			if(args.length < 2) continue;
-			var info = Vars.netServer.admins.getInfo(args[0]);
-			if(info == null) continue;
-			var ad = AdminData.from(info);
-			ad.usid = args[1];
-			for (int j = 2; j < args.length; j++) {
-				ad.add(args[j]);
-			}
-			admins.put(info, ad);
-		}
+		persistenceGateway.load(save);
 	}
-	
+
 	public static void save() {
-		StringBuilder result = new StringBuilder();
-		admins.each((info, data) -> {
-			if(result.length() != 0) result.append('\n');
-			result.append(info.id);
-			result.append(' ');
-			result.append(data.usid);
-			result.append(' ');
-			result.append(data.permissionsAsString(' '));
-		});
-		save.writeString(result.toString(), false);
+		persistenceGateway.save(save);
 	}
 
 	public static ObjectMap<PlayerInfo, AdminData> admins() {
-		return admins;
+		return AdminRegistry.instance().admins();
 	}
 }

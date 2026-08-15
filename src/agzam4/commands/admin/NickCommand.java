@@ -1,6 +1,6 @@
 package agzam4.commands.admin;
 
-import agzam4.PlayersData;
+import agzam4.managers.PlayersData;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.commands.CommandHandler;

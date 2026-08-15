@@ -1,7 +1,8 @@
 package agzam4.net;
 
+import agzam4.net.registry.NetMenuRegistry;
+import agzam4.net.selector.NetMenuOptionDispatchSelector;
 import arc.Events;
-import arc.struct.IntMap;
 import arc.struct.Seq;
 import arc.util.Nullable;
 import mindustry.game.EventType.MenuOptionChooseEvent;
@@ -9,29 +10,14 @@ import mindustry.gen.*;
 
 public class NetMenu {
 
-	private static int ids = 0;
-	
-	private static IntMap<NetMenu> menus = new IntMap<>();
-
 	public String title = "";
 	public String text = "";
-	
+
 	private Seq<Seq<NetMenuButton>> table = new Seq<>();
-	
+
 	public static void init() {
-		Events.on(MenuOptionChooseEvent.class, e -> {
-			var menu = menus.remove(e.menuId);
-			if(menu == null) {
-				return;
-			}
-			if(menu.player != e.player) return;
-			if(e.option < 0) {
-				if(menu.onClose != null) menu.onClose.get();
-				return;
-			}
-			menu.listeners[e.option].get();
-			if(menu.builder != null) menu.show(menu.player);
-		});
+		var dispatcher = new NetMenuOptionDispatchSelector();
+		Events.on(MenuOptionChooseEvent.class, dispatcher::dispatch);
 	}
 
 	
@@ -91,29 +77,48 @@ public class NetMenu {
 			}
 		}
 		this.player = player;
-		menus.put(ids, this);
-		Call.menu(player.con, ids, title, text, array);
-		ids++;
+		int id = NetMenuRegistry.instance().register(this);
+		Call.menu(player.con, id, title, text, array);
 	}
-	
+
+	/** Accessor used by {@link NetMenuOptionDispatchSelector} to validate menu ownership. */
+	public Player player() {
+		return player;
+	}
+
+	/** Accessor used by {@link NetMenuOptionDispatchSelector} to invoke the close listener, if any. */
+	public @Nullable NetMenuListener onCloseListener() {
+		return onClose;
+	}
+
+	/** Accessor used by {@link NetMenuOptionDispatchSelector} to invoke the chosen option's listener. */
+	public NetMenuListener listenerAt(int option) {
+		return listeners[option];
+	}
+
+	/** Accessor used by {@link NetMenuOptionDispatchSelector} to decide whether to re-show a builder-driven menu. */
+	public boolean hasBuilder() {
+		return builder != null;
+	}
+
 	private static class NetMenuButton {
-		
+
 		public NetMenuListener listener;
 		public String text;
-		
+
 		public NetMenuButton(String text, NetMenuListener listener) {
 			this.text = text;
 			this.listener = listener;
 		}
-		
-	}
-	
-	public static interface NetMenuListener {
-		
-		public void get();
-		
+
 	}
 
-	
-	
+	public static interface NetMenuListener {
+
+		public void get();
+
+	}
+
+
+
 }

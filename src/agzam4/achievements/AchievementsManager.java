@@ -1,6 +1,6 @@
 package agzam4.achievements;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.bot.Bots;
 import agzam4.bot.Bots.NotifyTag;
 import agzam4.database.Database.PlayerEntity;
@@ -49,7 +49,7 @@ public class AchievementsManager {
 		}
 
 		public String format(String name, Object... args) {
-			return Strings.format(Game.bungle("achievement.@.@", bungleName, name), args);
+			return Strings.format(MindustryGameRuntimeFacade.bungle("achievement.@.@", bungleName, name), args);
 		}
 	}
 	

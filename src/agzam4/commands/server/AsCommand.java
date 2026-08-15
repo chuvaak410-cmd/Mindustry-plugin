@@ -6,7 +6,7 @@ import agzam4.CommandsManager;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.admins.Admins;
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.commands.CommandHandler;
 import arc.struct.Seq;
 import arc.util.Log;
@@ -25,7 +25,7 @@ public class AsCommand extends CommandHandler<Object> {
 	public void command(String[] args, CommandSender sender, Object receiver, ReceiverType type) {
 		if(require(args.length <= 1, sender, "Мало аргументов")) return;
 		
-		var player = Game.findPlayer(args[0]);
+		var player = MindustryGameRuntimeFacade.findPlayer(args[0]);
 		if(require(player == null, sender, "Игрок не найден")) return;
 		
 		var command = CommandsManager.playerCommands().find(c -> c.text.equals(args[1]));
@@ -44,7 +44,7 @@ public class AsCommand extends CommandHandler<Object> {
 		Log.info(Arrays.toString(args));
 		if(args.length == 0) return completePlayers();
 		if(args.length == 1) return CommandsManager.playerCommands().select(c -> Admins.has(receiver, c.text)).map(c -> c.text);
-		var player = Game.findPlayer(args[0]);
+		var player = MindustryGameRuntimeFacade.findPlayer(args[0]);
 		if(player == null) return null;
 		var command = CommandsManager.playerCommands().find(c -> c.text.equals(args[1]));
 		if(command == null) return null;

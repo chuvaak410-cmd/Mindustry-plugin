@@ -3,7 +3,7 @@ package agzam4.bot;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.CompletableFuture;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import arc.util.CommandHandler;
 import arc.util.Strings;
 
@@ -30,7 +30,7 @@ public class Bots {
 		}
 		
 		public String bungle(String s, Object...args) {
-			return Strings.format(Game.bungle("bot.notify." + Strings.camelToKebab(name()) + "." + s), args);
+			return Strings.format(MindustryGameRuntimeFacade.bungle("bot.notify." + Strings.camelToKebab(name()) + "." + s), args);
 		}
 	}
 

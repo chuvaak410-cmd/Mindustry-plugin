@@ -1,7 +1,7 @@
 package agzam4.commands.server;
 
-import agzam4.Game;
-import agzam4.PlayersData;
+import agzam4.game.MindustryGameRuntimeFacade;
+import agzam4.managers.PlayersData;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.admins.Admins;
@@ -20,7 +20,7 @@ public class SetnickCommand extends CommandHandler<Object> {
 	@Override
 	public void command(String[] args, CommandSender sender, Object receiver, ReceiverType type) {
 		if(args.length == 0) return;
-		Player p = Game.findPlayer(args[0]);
+		Player p = MindustryGameRuntimeFacade.findPlayer(args[0]);
 		if(require(p == null, sender, "[red]Игрок не найден")) return;
 
 		String name = args.length == 1 ? "" : args[1];

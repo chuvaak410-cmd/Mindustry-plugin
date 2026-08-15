@@ -18,8 +18,11 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.BotSession;
 
-import agzam4.Game;
-import agzam4.utils.Log;
+import agzam4.bot.registry.TelegramBotRegistry;
+import agzam4.bot.strategy.ITelegramMessageRoutingStrategy;
+import agzam4.bot.strategy.TelegramMessageRoutingStrategyImpl;
+import agzam4.game.MindustryGameRuntimeFacade;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 import arc.files.Fi;
 import arc.func.Cons;
 import arc.struct.LongMap;
@@ -43,8 +46,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 	private static boolean isRunning;
 	public static TelegramBot bot;
 	
-	public static LongMap<TChat> chats = new LongMap<>();
-	public static LongMap<TUser> users = new LongMap<>();
+	public static LongMap<TChat> chats = TelegramBotRegistry.instance().chats();
+	public static LongMap<TUser> users = TelegramBotRegistry.instance().users();
+
+	private static final ITelegramMessageRoutingStrategy routingStrategy = new TelegramMessageRoutingStrategyImpl();
 
 	public TelegramBot(String token) {
 		super(token);
@@ -56,20 +61,20 @@ public class TelegramBot extends TelegramLongPollingBot {
 	}
 	
 	public static void init() {
-		Log.info("Loading bot...");
+		ApplicationDiagnosticMessageGateway.info("Loading bot...");
 		
 		if(botTokenPath.exists()) {
 			try {
 				String[] data = botTokenPath.readString().split(" ");
 				if(data.length == 2) run(data[0], data[1]);
 			} catch (Exception e) {
-				Log.err(e);
+				ApplicationDiagnosticMessageGateway.err(e);
 			}
 		} else {
-			Log.info("Token not found");
+			ApplicationDiagnosticMessageGateway.info("Token not found");
 		}
 		load();
-		Log.info("Bot loaded!");
+		ApplicationDiagnosticMessageGateway.info("Bot loaded!");
 	}
 	
 	public static void load() {
@@ -83,7 +88,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 				}
 			}
 		} catch (Exception e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 		try {
 			if(botChatsPath.exists()) {
@@ -96,7 +101,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 				}
 			}
 		} catch (Exception e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
@@ -105,13 +110,13 @@ public class TelegramBot extends TelegramLongPollingBot {
 			save(users, botUsersPath);
 			save(chats, botChatsPath);
 		} catch (Exception e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
 	private static <T extends TSender> void save(LongMap<T> values, Fi file) {
 		try {
-			Log.info("Saving [blue]@[]", values);
+			ApplicationDiagnosticMessageGateway.info("Saving [blue]@[]", values);
 	        StringWriter string = new StringWriter();
 			var writer = new JsonWriter(string);
 			writer.array();
@@ -126,7 +131,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 			reader.parse(string.toString()).prettyPrint(OutputType.json,w);
 			w.close();
 		} catch (Exception e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
@@ -143,10 +148,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 				session = botsApi.registerBot(bot);
 				botTokenPath.writeString(n + " " + t, false);
 			}
-			Log.info("Bot [blue]@[] is running", n.length() > 5 ? n.substring(0, 5)+"..." : n.substring(0, n.length()));
+			ApplicationDiagnosticMessageGateway.info("Bot [blue]@[] is running", n.length() > 5 ? n.substring(0, 5)+"..." : n.substring(0, n.length()));
 			isRunning = true;
 		} catch (TelegramApiException e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 			isRunning = false;
 			bot = null;
 		}
@@ -186,43 +191,33 @@ public class TelegramBot extends TelegramLongPollingBot {
 				return;
 			}
 			
-			if(chatId == fromId) {
-				user.onMessage(user, text);
-				return;
-			}
-
-			var chat = chats.get(chatId);
-
-			if(threadId == null) {
-				if(chat == null) {
-					sendMessageMarkdown(chatId, "Чат не найден, id чата: `c-" + Long.toUnsignedString(chatId, Character.MAX_RADIX) + "`");
-					return;
+			var decision = routingStrategy.route(user, chats, chatId, fromId, threadId);
+			switch (decision.kind) {
+				case SELF, CHAT, THREAD -> user.onMessage(decision.target, text);
+				case CHAT_NOT_FOUND -> {
+					if(threadId == null) {
+						sendMessageMarkdown(chatId, "Чат не найден, id чата: `c-" + Long.toUnsignedString(chatId, Character.MAX_RADIX) + "`");
+					} else {
+						send(b -> {
+							b.chatId(chatId);
+							b.messageThreadId(threadId);
+							b.text("Чат не найден, id чата: `c-" + Long.toUnsignedString(chatId, Character.MAX_RADIX) + "`");
+							b.parseMode("markdown");
+						});
+					}
 				}
-				user.onMessage(chat, text);
-			} else {
-				if(chat == null) {
-					send(b -> {
-						b.chatId(chatId);
-						b.messageThreadId(threadId);
-						b.text("Чат не найден, id чата: `c-" + Long.toUnsignedString(chatId, Character.MAX_RADIX) + "`");
-						b.parseMode("markdown");
-					});
-					return;
-				}
-				var thread = chat.thread(threadId);
-				if(thread == null) {
+				case THREAD_NOT_FOUND -> {
+					var chat = chats.get(chatId);
 					send(b -> {
 						b.chatId(chatId);
 						b.messageThreadId(threadId);
 						b.text("Тема не найдена, id темы: `c-" + chat.uid() + "/" + Integer.toUnsignedString(threadId, Character.MAX_RADIX) + "`");
 						b.parseMode("markdown");
 					});
-					return;
 				}
-				user.onMessage(thread, text);
 			}
 		} catch (Exception e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
@@ -247,7 +242,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 		try {
 			bot.execute(photo);
 		} catch (Exception e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
@@ -258,7 +253,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 			cons.get(builder);
 			bot.execute(builder.build());
 		} catch (Exception e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
@@ -269,8 +264,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 					.text(message).parseMode("html")
 					.build());
 		} catch (TelegramApiException e) {
-			Log.err("Message: @", message);
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err("Message: @", message);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
@@ -311,7 +306,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 	}
 
 	public static String strip(String str) {
-		return escapeHtml(Game.strip(str));//str.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+		return escapeHtml(MindustryGameRuntimeFacade.strip(str));//str.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 	}
 
 }

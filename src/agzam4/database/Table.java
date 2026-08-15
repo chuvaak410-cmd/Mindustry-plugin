@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
 import agzam4.database.DBFields.FIELD;
 import agzam4.database.DBFields.PRIMARY_KEY;
 import agzam4.database.SQL.TableColumnInfo;
-import agzam4.utils.Log;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.Nullable;
@@ -46,7 +46,7 @@ public class Table<T> {
 						continue;
 					}
 					same = false;
-					Log.info("Table fields not matching: [@]/[@]", currentInfo.get(i), previousInfo.get(i));
+					ApplicationDiagnosticMessageGateway.info("Table fields not matching: [@]/[@]", currentInfo.get(i), previousInfo.get(i));
 					break;
 				}
 			}
@@ -57,7 +57,7 @@ public class Table<T> {
 				 * - ALTER TABLE <TABLENAME> DROP <COLUMNNAME>;
 				 * - ALTER TABLE <TABLENAME> ADD COLUMN <COLUM>;
 				 */
-				Log.info("Changing the table: [blue]@[] -> [blue]@[]", previousInfo, currentInfo);
+				ApplicationDiagnosticMessageGateway.info("Changing the table: [blue]@[] -> [blue]@[]", previousInfo, currentInfo);
 
 				Seq<TableColumnInfo> toCopy = new Seq<>();
 				for (var info : currentInfo) {
@@ -80,7 +80,7 @@ public class Table<T> {
 		
 		
 		Database.execute(Strings.format("CREATE TABLE IF NOT EXISTS @ (@)", name, currentInfo.toString(",", info -> info.toString())));
-		Log.info("Table [blue]@[] inited", name);
+		ApplicationDiagnosticMessageGateway.info("Table [blue]@[] inited", name);
 		
 	    try {
 	        Lookup lookup = MethodHandles.lookup();
@@ -139,7 +139,7 @@ public class Table<T> {
 				}
 				return entity;
 			} catch (Throwable e) {
-				Log.err(e);
+				ApplicationDiagnosticMessageGateway.err(e);
 			}
 			return null;
 		}, key);
@@ -169,7 +169,7 @@ public class Table<T> {
 				}
 				return ts;
 			} catch (Throwable e) {
-				Log.err(e);
+				ApplicationDiagnosticMessageGateway.err(e);
 			}
 			return null;
 		}, sqlArgs);
@@ -200,9 +200,9 @@ public class Table<T> {
 	
 	public void debug(T entity) {
 		try {
-			Log.info("key=@", key(entity));
+			ApplicationDiagnosticMessageGateway.info("key=@", key(entity));
 		} catch (Throwable e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 
@@ -210,7 +210,7 @@ public class Table<T> {
 		try {
 			return getters.get(keyName).invoke(entity);
 		} catch (Throwable e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 		return null;
 	}
@@ -219,7 +219,7 @@ public class Table<T> {
 		try {
 			return getters.get(name).invoke(entity);
 		} catch (Throwable e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 		return null;
 	}

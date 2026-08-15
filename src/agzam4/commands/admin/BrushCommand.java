@@ -1,6 +1,6 @@
 package agzam4.commands.admin;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.admins.Admins;
@@ -174,7 +174,7 @@ public class BrushCommand extends CommandHandler<Player> {
 					sender.sendMessage("[gold]Блок отвязан");
 					return;
 				}
-				@Nullable Block find = Game.findBlock(blockname);
+				@Nullable Block find = MindustryGameRuntimeFacade.findBlock(blockname);
 
 				if(require(find == null, sender, "[red]Блок не найден")) return;
 				if(require(!allowedBlock(find, player), sender, "[red]Блок недоступен в текущем режиме игры")) return;
@@ -186,7 +186,7 @@ public class BrushCommand extends CommandHandler<Player> {
 					sender.sendMessage("[gold]Поверхность отвязана");
 					return;
 				}
-				@Nullable Block find = Game.findBlock(blockname);
+				@Nullable Block find = MindustryGameRuntimeFacade.findBlock(blockname);
 				if(require(find == null, sender, "[red]Поверхность не найдена")) return;
 				if(require(!(find instanceof Floor), sender, "[red]Это не поверхность")) return;
 				brush.floor = find;
@@ -197,7 +197,7 @@ public class BrushCommand extends CommandHandler<Player> {
 					sender.sendMessage("[gold]Покрытие отвязано");
 					return;
 				}
-				@Nullable Block find = Game.findBlock(blockname);
+				@Nullable Block find = MindustryGameRuntimeFacade.findBlock(blockname);
 				if(require(find == null, sender, "[red]Поверхность не найдена")) return;
 				if(require(!(find instanceof OverlayFloor) && find != Blocks.air, sender, "[red]Это не поверхность")) return;
 				brush.overlay = find;
