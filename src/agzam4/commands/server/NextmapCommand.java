@@ -1,6 +1,6 @@
 package agzam4.commands.server;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.admins.Admins;
@@ -40,7 +40,7 @@ public class NextmapCommand extends CommandHandler<Object> {
 			return;
 		}
 		
-        Map res = Vars.maps.all().find(map -> map.plainName().replace('_', ' ').equalsIgnoreCase(Game.strip(args[0]).replace('_', ' ')));
+        Map res = Vars.maps.all().find(map -> map.plainName().replace('_', ' ').equalsIgnoreCase(MindustryGameRuntimeFacade.strip(args[0]).replace('_', ' ')));
         boolean canEventmaps = receiver instanceof Player player ? Admins.has(player, "eventmaps") : true;
         if(args[0].startsWith("$") && canEventmaps) {
 			try {

@@ -1,13 +1,13 @@
 package agzam4.commands.any;
 
-import static agzam4.Emoji.liquidsEmoji;
-import static agzam4.Emoji.oreBlocksEmoji;
+import static agzam4.utils.UnicodeEmoticonResolutionProvider.liquidsEmoji;
+import static agzam4.utils.UnicodeEmoticonResolutionProvider.oreBlocksEmoji;
 
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.admins.Admins;
 import agzam4.commands.CommandHandler;
-import agzam4.utils.Log;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 import arc.graphics.Color;
 import mindustry.Vars;
 import mindustry.content.Blocks;
@@ -78,7 +78,7 @@ public class MapinfoCommand extends CommandHandler<Object> {
 		for (int i = 0; i < counter.length; i++) {
 			float cv = ((float)counter[i])*typesCounter/summaryCounter/3f;
 			if(cv > 1/3f) cv = 1/3f;
-			Log.info("cv: @", cv);
+			ApplicationDiagnosticMessageGateway.info("cv: @", cv);
 			int percent = (int) Math.ceil(counter[i]*100d/summaryCounter);
 			Color c = Color.HSVtoRGB(cv*360f, 80, 100);
 			worldInfo.append(oreBlocksEmoji[i]);

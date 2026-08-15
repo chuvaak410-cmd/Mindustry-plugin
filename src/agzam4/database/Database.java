@@ -16,7 +16,7 @@ import agzam4.database.DBFields.DEFAULT;
 import agzam4.database.DBFields.FIELD;
 import agzam4.database.DBFields.PRIMARY_KEY;
 import agzam4.database.SQL.TableColumnInfo;
-import agzam4.utils.Log;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 import arc.func.Cons;
 import arc.func.Func;
 import arc.math.Mathf;
@@ -40,12 +40,12 @@ public class Database {
 //        DriverManager.setLogWriter(new PrintWriter(System.err));
         try {
         	var c = DriverManager.getConnection(url);
-        	Log.info("Connected to SQL");
+        	ApplicationDiagnosticMessageGateway.info("Connected to SQL");
         	connection = c;
         	players = new Table<PlayerEntity>("players", PlayerEntity.class);
         	achievements = new Table<AchievementEntity>("achievements", AchievementEntity.class);
         } catch (SQLException e) {
-        	Log.err(e);
+        	ApplicationDiagnosticMessageGateway.err(e);
         }
 	}
 	
@@ -57,7 +57,7 @@ public class Database {
 		try (Statement s = connection.createStatement()) {
 			s.execute(sql);
 		} catch (SQLException e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
@@ -77,7 +77,7 @@ public class Database {
 			}
 			s.executeUpdate();
 		} catch (SQLException e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}		
 	}
 	
@@ -89,9 +89,9 @@ public class Database {
 	public static boolean executeTransaction(String...executes) {
 		try (Statement s = connection.createStatement()) {
 			connection.setAutoCommit(false);
-			Log.info("[SQL] == [Transaction] ==========");
+			ApplicationDiagnosticMessageGateway.info("[SQL] == [Transaction] ==========");
 			for (int i = 0; i < executes.length; i++) {
-				Log.info("[SQL] Transaction > @", executes[i]);
+				ApplicationDiagnosticMessageGateway.info("[SQL] Transaction > @", executes[i]);
 				s.execute(executes[i]);
 			}
 			connection.commit();
@@ -100,17 +100,17 @@ public class Database {
 			try {
 				connection.rollback();
 			} catch (SQLException e1) {
-				Log.err(e1);
+				ApplicationDiagnosticMessageGateway.err(e1);
 			}
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 			return false;
 		} finally {
 			try {
-				Log.info("[SQL] == [Transaction] ==========");
+				ApplicationDiagnosticMessageGateway.info("[SQL] == [Transaction] ==========");
 				connection.setAutoCommit(true);
 			} catch (SQLException e) {
-				Log.err(e);
-	        	Log.err("SQL:\n@", Arrays.toString(executes));
+				ApplicationDiagnosticMessageGateway.err(e);
+	        	ApplicationDiagnosticMessageGateway.err("SQL:\n@", Arrays.toString(executes));
 			}
 		}
 	}
@@ -126,7 +126,7 @@ public class Database {
 			ResultSet set = stmt.executeQuery(sql);
 			while (set.next()) cons.get(set);
 		} catch (SQLException e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 
@@ -135,7 +135,7 @@ public class Database {
 		try (Statement stmt = connection.createStatement()) {
 			result = func.get(stmt.executeQuery(sql));
 		} catch (SQLException e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 		return result;
 	}
@@ -147,7 +147,7 @@ public class Database {
 			}
 			return func.get(s.executeQuery());
 		} catch (SQLException e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}	
 		return null;
 	}
@@ -164,7 +164,7 @@ public class Database {
 				while (result.next()) infos.add(new TableColumnInfo(result));
 				return infos;
 			} catch (SQLException e) {
-				Log.err(e);
+				ApplicationDiagnosticMessageGateway.err(e);
 			}
 			return null;
 		});
@@ -176,7 +176,7 @@ public class Database {
 				Seq<String> tables = new Seq<>();
 				while (result.next()) tables.add(result.getString("name"));
 			} catch (SQLException e) {
-				Log.err(e);
+				ApplicationDiagnosticMessageGateway.err(e);
 			}
 			return null;
 		});
@@ -265,19 +265,19 @@ public class Database {
 				entity.type = achievement.id;
 				achievements.add(entity);
 				Database.achievements.putNoKey(entity);
-				Log.info("Status: NEW");
-				Log.info("===========");
+				ApplicationDiagnosticMessageGateway.info("Status: NEW");
+				ApplicationDiagnosticMessageGateway.info("===========");
 				return true;
 			}
 			if(entity.tier < tier) {
 				entity.tier = tier;
 				Database.achievements.put(entity);
-				Log.info("Status: UPDATED");
-				Log.info("===========");
+				ApplicationDiagnosticMessageGateway.info("Status: UPDATED");
+				ApplicationDiagnosticMessageGateway.info("===========");
 				return true;
 			}
-			Log.info("Status: Reject");
-			Log.info("===========");
+			ApplicationDiagnosticMessageGateway.info("Status: Reject");
+			ApplicationDiagnosticMessageGateway.info("===========");
 			return false;
 		}
 		
@@ -295,14 +295,14 @@ public class Database {
 //		
 //		public boolean achievement(Achievement achievement, int mapId, int tier) {
 //			if(tier <= 0) return false;
-//			Log.info("| @ @ @", achievement, mapId, tier);
+//			ApplicationDiagnosticMessageGateway.info("| @ @ @", achievement, mapId, tier);
 //			if(achievementMaps == null || achievementTypes == null || achievementTiers == null) {
 //				achievementMaps = new Seq<>();
 //				achievementTypes = new Seq<>();
 //				achievementTiers = new Seq<>();
 //			}
 //			if((achievementMaps.size != achievementTypes.size) || (achievementMaps.size != achievementTiers.size)) {
-//				Log.err("length is different uuid=@", uuid);
+//				ApplicationDiagnosticMessageGateway.err("length is different uuid=@", uuid);
 //				return false;
 //			}
 //			for (int i = 0; i < achievementMaps.size; i++) {
@@ -331,7 +331,7 @@ public class Database {
 //				achievementTiers = new Seq<>();
 //			}
 //			if((achievementMaps.size != achievementTypes.size) || (achievementMaps.size != achievementTiers.size)) {
-//				Log.err("length is different uuid=@", uuid);
+//				ApplicationDiagnosticMessageGateway.err("length is different uuid=@", uuid);
 //				return 0;
 //			}
 //			for (int i = 0; i < achievementMaps.size; i++) {

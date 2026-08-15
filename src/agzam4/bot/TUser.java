@@ -1,17 +1,19 @@
 package agzam4.bot;
 
 import agzam4.CommandsManager.CommandSender;
-import agzam4.utils.Log;
+import agzam4.bot.strategy.ITUserMessageHandlingStrategy;
+import agzam4.bot.strategy.TUserMessageHandlingStrategyImpl;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 
 import java.io.IOException;
 
-import arc.util.CommandHandler.ResponseType;
 import arc.util.serialization.JsonValue;
 import arc.util.serialization.JsonWriter;
 import arc.util.Nullable;
-import mindustry.gen.Call;
 
 public class TUser extends TSender {
+
+	private static final ITUserMessageHandlingStrategy messageHandlingStrategy = new TUserMessageHandlingStrategyImpl();
 
 	public String name = "user";
 	
@@ -31,43 +33,7 @@ public class TUser extends TSender {
 	}
 	
 	public void onMessage(TSender sender, String message) {
-		if(sender.ignore()) return;
-		if(message.startsWith("/")) {
-			var response = Bots.handler.handleMessage(message, new MessageData() {{
-				user = TUser.this;
-				chat = sender;
-			}});
-			if(response.type == ResponseType.valid) return;
-			if(response.type == ResponseType.noCommand) {
-				sender.message("не команда найдена");
-				return;
-			}
-			if(response.type == ResponseType.manyArguments) {
-				sender.message("Слишком много аргументов");
-				return;
-			}
-			if(response.type == ResponseType.fewArguments) {
-				sender.message("Слишком мало аргументов");
-				return;
-			}
-			if(response.type == ResponseType.unknownCommand) {
-				sender.message("Команда не найдена");
-				return;
-			}
-			sender.message(":(");
-			return;
-		}
-		if(this == sender && hasPermission("server-say")) {
-			Call.sendMessage(message);
-			return;
-		}
-		if(this == sender) sender.message("Type /help for more");
-		return;
-//		
-//		if(sender == this) {
-//			sender.message("Hello user!");	
-//		}
-//		else sender.message("Hello chat!");
+		messageHandlingStrategy.handle(this, sender, message);
 	}
 
 	public static @Nullable TUser read(String data) {
@@ -97,7 +63,7 @@ public class TUser extends TSender {
 		public boolean hasPermissions(String permission) {
 			if(!chat.hasPermission(permission)) return false;
 			if(user.hasOnlyChatPermission(permission)) {
-				Log.info("Checking [blue]only-chat @[] @ ([gray]@[] != [gray]@[])", permission, user != chat, user.uid(), chat.uid());
+				ApplicationDiagnosticMessageGateway.info("Checking [blue]only-chat @[] @ ([gray]@[] != [gray]@[])", permission, user != chat, user.uid(), chat.uid());
 				return user != chat;
 			}
 			return user.hasPermission(permission);

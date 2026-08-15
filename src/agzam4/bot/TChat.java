@@ -10,7 +10,9 @@ import javax.imageio.ImageIO;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 
-import agzam4.utils.Log;
+import agzam4.bot.strategy.ITChatDisplayFormatStrategy;
+import agzam4.bot.strategy.TChatDisplayFormatStrategyImpl;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 import arc.struct.IntMap;
 import arc.util.ArcRuntimeException;
 import arc.util.Nullable;
@@ -19,7 +21,9 @@ import arc.util.serialization.JsonValue;
 import arc.util.serialization.JsonWriter;
 
 public class TChat extends TSender {
-	
+
+	private static final ITChatDisplayFormatStrategy displayFormatStrategy = new TChatDisplayFormatStrategyImpl();
+
 	public @Nullable Integer thread = null;
 	public IntMap<TChat> threads = new IntMap<TChat>();
 
@@ -90,20 +94,17 @@ public class TChat extends TSender {
 			stream.close();
 			TelegramBot.send(sendPhoto);
 		} catch (Exception e) {
-			Log.err(e);
+			ApplicationDiagnosticMessageGateway.err(e);
 		}
 	}
 	
 	@Override
 	public String toString() {
-		if(threads.size > 0) return Strings.format("Mutichat-@ (@ threads)", uid(), threads.size);
-		if(thread != null) return Strings.format("Thread-@/@", uid(), Integer.toUnsignedString(thread, Character.MAX_RADIX));
-		return Strings.format("Group-@", uid());
+		return displayFormatStrategy.toDisplayString(threads.size, thread, uid());
 	}
 
 	@Override
 	public String fuid() {
-		if(thread == null) return super.fuid();
-		return super.fuid() + "/" + Integer.toUnsignedString(thread, Character.MAX_RADIX);
+		return displayFormatStrategy.toFuid(thread, super.fuid());
 	}
 }

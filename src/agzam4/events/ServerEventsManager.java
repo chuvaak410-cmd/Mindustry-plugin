@@ -1,6 +1,6 @@
 package agzam4.events;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import arc.Events;
 import arc.files.Fi;
 import arc.func.Boolf;
@@ -178,7 +178,7 @@ public class ServerEventsManager {
 			isLoaded = true;
 			activeEvents.add(event);
 			save();
-			Game.sync();
+			MindustryGameRuntimeFacade.sync();
 		}
 	}
 

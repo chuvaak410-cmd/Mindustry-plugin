@@ -1,6 +1,6 @@
 package agzam4.commands.server;
 
-import agzam4.AgzamPlugin;
+import agzam4.EnterpriseGradeMindustryServerPluginApplicationEntryPoint;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.commands.CommandHandler;
@@ -9,7 +9,7 @@ import arc.struct.Seq;
 
 public class ChatfilterCommand extends CommandHandler<Object> {
 
-	public static boolean chatFilter = Core.settings.getBool(AgzamPlugin.name() + "-chat-filter", false);
+	public static boolean chatFilter = Core.settings.getBool(EnterpriseGradeMindustryServerPluginApplicationEntryPoint.name() + "-chat-filter", false);
 	
 	{
 		parms = "<on/off>";
@@ -21,11 +21,11 @@ public class ChatfilterCommand extends CommandHandler<Object> {
 		if(require(argы.length == 0, sender, "[red]Недостаточно аргументов")) return;
 		if(argы[0].equals("on")) {
 			chatFilter = true;
-			Core.settings.put(AgzamPlugin.name() + "-chat-filter", chatFilter);
+			Core.settings.put(EnterpriseGradeMindustryServerPluginApplicationEntryPoint.name() + "-chat-filter", chatFilter);
 			sender.sendMessage("[green]Чат фильтр включен");
 		}else if(argы[0].equals("off")) {
 			chatFilter = false;
-			Core.settings.put(AgzamPlugin.name() + "-chat-filter", chatFilter);
+			Core.settings.put(EnterpriseGradeMindustryServerPluginApplicationEntryPoint.name() + "-chat-filter", chatFilter);
 			sender.sendMessage("[red]Чат фильтр выключен");
 		}else {
 			sender.sendMessage("Неверный аргумент, используйте [gold]on/off");

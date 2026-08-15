@@ -1,10 +1,10 @@
 package agzam4.votes;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.bot.Bots;
 import agzam4.bot.TelegramBot;
 import agzam4.bot.Bots.NotifyTag;
-import agzam4.managers.Kicks;
+import agzam4.managers.PlayerKickOperationOrchestrator;
 import arc.util.Nullable;
 import arc.util.Strings;
 import mindustry.core.NetServer;
@@ -49,7 +49,7 @@ public class KickVoteSession extends VoteSession {
 			Strings.format(bungle("pass.bot"), TelegramBot.strip(target.name), NetServer.kickDuration / 60),
 			Strings.format(bungle("pass.admin.bot"), TelegramBot.strip(target.name), (NetServer.kickDuration / 60), target.uuid(), target.usid(), target.ip())
 		);
-		Kicks.kick(kicker, target, reason, NetServer.kickDuration);
+		PlayerKickOperationOrchestrator.kick(kicker, target, reason, NetServer.kickDuration);
 		passListener.run();
 	}
 	
@@ -66,7 +66,7 @@ public class KickVoteSession extends VoteSession {
 	}
 
 	String bungle(String name) {
-		return Game.bungle("command.response.votekick." + name);
+		return MindustryGameRuntimeFacade.bungle("command.response.votekick." + name);
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package agzam4.commands.admin;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.commands.CommandHandler;
@@ -34,7 +34,7 @@ public class TempbanCommand extends CommandHandler<Player> {
         }
         String target = args[0];
         PlayerInfo info = null;
-        Player onlinePlayer = Game.findPlayer(target);
+        Player onlinePlayer = MindustryGameRuntimeFacade.findPlayer(target);
         if(onlinePlayer != null){
             info = onlinePlayer.getInfo();
         }
@@ -43,7 +43,7 @@ public class TempbanCommand extends CommandHandler<Player> {
         }
         if(info == null){
             for(PlayerInfo pInfo : Vars.netServer.admins.playerInfo.values()){
-                if(pInfo.plainLastName().equalsIgnoreCase(target) || Game.strip(pInfo.lastName).equalsIgnoreCase(target)){
+                if(pInfo.plainLastName().equalsIgnoreCase(target) || MindustryGameRuntimeFacade.strip(pInfo.lastName).equalsIgnoreCase(target)){
                     info = pInfo;
                     break;
                 }

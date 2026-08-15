@@ -1,11 +1,11 @@
 package agzam4.commands.admin;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.admins.Admins;
 import agzam4.commands.CommandHandler;
-import agzam4.net.NetMenu;
+import agzam4.net.factory.NetMenuFactory;
 import arc.func.Cons2;
 import arc.util.Strings;
 import mindustry.content.StatusEffects;
@@ -24,13 +24,13 @@ public class MCommand extends CommandHandler<Player> {
 
 	@Override
 	public void command(String[] args, CommandSender sender, Player admin, ReceiverType type) {
-		 var players = new NetMenu("[white]" + Config.serverName.get().toString());
+		 var players = new NetMenuFactory().create("[white]" + Config.serverName.get().toString());
 
 		 for (int i = 0; i < Groups.player.size(); i++) {
 			 Player player = Groups.player.index(i);
 			 if(admin == null) continue;
 			 players.button(player.coloredName(), () -> {
-				 var playerControl = new NetMenu(player.coloredName());
+				 var playerControl = new NetMenuFactory().create(player.coloredName());
 				 playerControl.build(() -> {
 					 if(Admins.has(admin, "team")) {
 						 for (var team : Team.baseTeams) {
@@ -71,7 +71,7 @@ public class MCommand extends CommandHandler<Player> {
 					 playerControl.row();
 					 playerControl.button("[gold]\ue86d Сброс юнита", () -> {
 						 if(player.unit() != null) {
-							 Game.clearUnit(player);
+							 MindustryGameRuntimeFacade.clearUnit(player);
 						 }
 					 });
 				 });

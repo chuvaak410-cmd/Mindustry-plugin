@@ -1,9 +1,9 @@
 package agzam4.commands.server;
 
-import agzam4.AgzamPlugin;
+import agzam4.EnterpriseGradeMindustryServerPluginApplicationEntryPoint;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.commands.CommandHandler;
 import agzam4.commands.Server;
 import arc.Core;
@@ -30,7 +30,7 @@ public class ExtrastarCommand extends CommandHandler<Object> {
 			return;
 		}
 		if(args.length == 2) {
-			Player playert = Game.findPlayer(args[1]);
+			Player playert = MindustryGameRuntimeFacade.findPlayer(args[1]);
 			if(playert != null) args[1] = playert.uuid();
 
 			if(args[0].equalsIgnoreCase("add")) {
@@ -63,6 +63,6 @@ public class ExtrastarCommand extends CommandHandler<Object> {
 	}
 
 	private void save() {
-		Core.settings.putJson(AgzamPlugin.name() + "-extrastar-uids", ObjectSet.class, Server.extrastarUids);
+		Core.settings.putJson(EnterpriseGradeMindustryServerPluginApplicationEntryPoint.name() + "-extrastar-uids", ObjectSet.class, Server.extrastarUids);
 	}
 }

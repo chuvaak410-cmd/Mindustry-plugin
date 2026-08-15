@@ -3,7 +3,7 @@ package agzam4.commands.server;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.commands.CommandHandler;
-import agzam4.utils.Log;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 import arc.struct.Seq;
 import arc.util.Strings;
 import mindustry.content.StatusEffects;
@@ -66,7 +66,7 @@ public class TeamCommand extends CommandHandler<Object> {
 			} else {
 				targetPlayer.team(team);
 				if(team.name.equals(Team.crux.name)) {
-					Log.info("crux");
+					ApplicationDiagnosticMessageGateway.info("crux");
 					targetPlayer.unit().healTime(.01f);
 					targetPlayer.unit().healthMultiplier(100);
 					targetPlayer.unit().maxHealth(1000f);

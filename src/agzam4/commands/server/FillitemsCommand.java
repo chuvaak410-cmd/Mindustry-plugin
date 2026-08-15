@@ -1,6 +1,6 @@
 package agzam4.commands.server;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.commands.CommandHandler;
@@ -24,9 +24,9 @@ public class FillitemsCommand extends CommandHandler<Object> {
 				StringBuilder names = new StringBuilder();
 				Vars.content.items().each(i -> {
 					if(names.length() != 0) names.append(", ");
-					if(type == ReceiverType.player) names.append("[white]" + i.emoji() + " " + Game.getColoredLocalizedItemName(i));
-					if(type == ReceiverType.bot) names.append("<code>" + Game.contentName(i) + "</code>");
-					if(type == ReceiverType.server) names.append(Game.contentName(i));
+					if(type == ReceiverType.player) names.append("[white]" + i.emoji() + " " + MindustryGameRuntimeFacade.getColoredLocalizedItemName(i));
+					if(type == ReceiverType.bot) names.append("<code>" + MindustryGameRuntimeFacade.contentName(i) + "</code>");
+					if(type == ReceiverType.server) names.append(MindustryGameRuntimeFacade.contentName(i));
 				});
 				sender.sendMessage(type.format("fillitems.names", names));
 				return;
@@ -42,7 +42,7 @@ public class FillitemsCommand extends CommandHandler<Object> {
 				return;
 			}
 
-			Item item = Vars.content.items().find(i -> itemname.equalsIgnoreCase(i.name) || itemname.equalsIgnoreCase(Game.contentName(i)));
+			Item item = Vars.content.items().find(i -> itemname.equalsIgnoreCase(i.name) || itemname.equalsIgnoreCase(MindustryGameRuntimeFacade.contentName(i)));
 			if(require(item == null, sender, type.err("fillitems.no-item"))) return;
 			Team team = receiver instanceof Player p ? p.team() : Vars.state.rules.defaultTeam;
 			if(require(team.cores().size == 0, sender, type.err("fillitems.no-core"))) return;

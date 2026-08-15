@@ -6,7 +6,7 @@ import agzam4.admins.Admins;
 import agzam4.bot.TUser.MessageData;
 import agzam4.commands.CommandHandler;
 import agzam4.commands.Server;
-import agzam4.managers.Kicks;
+import agzam4.managers.PlayerKickOperationOrchestrator;
 import agzam4.votes.KickVoteSession;
 import arc.util.Strings;
 import mindustry.gen.Call;
@@ -48,7 +48,7 @@ public class VoteCommand extends CommandHandler<Object> {
 		};
 		
 		if(permission && sign > 0) {
-    		Kicks.kick(KickVoteSession.current.kicker, KickVoteSession.current.target, KickVoteSession.current.reason);
+    		PlayerKickOperationOrchestrator.kick(KickVoteSession.current.kicker, KickVoteSession.current.target, KickVoteSession.current.reason);
 			KickVoteSession.current.cancel();
     		return;
 		}

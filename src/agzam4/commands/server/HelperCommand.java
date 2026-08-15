@@ -3,12 +3,12 @@ package agzam4.commands.server;
 import agzam4.CommandsManager;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.CommandsManager.ReceiverType;
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.admins.AdminData;
 import agzam4.admins.Admins;
 import agzam4.commands.CommandHandler;
 import agzam4.commands.Permissions;
-import agzam4.utils.Log;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 import arc.struct.ObjectSet;
 import arc.struct.Seq;
 import arc.util.Strings;
@@ -30,7 +30,7 @@ public class HelperCommand extends CommandHandler<Object> {
 		else if(args[0].equalsIgnoreCase("remove")) code = -1;
 		else if(args[0].equalsIgnoreCase("refresh")) code = 2;
 		if(code == 0) {
-            Player found = Game.findPlayer(args[0]);
+            Player found = MindustryGameRuntimeFacade.findPlayer(args[0]);
 			if(require(found == null, sender, "[red]UIID не найден")) return;
             
 			AdminData data = Admins.adminData(found.getInfo());
@@ -44,7 +44,7 @@ public class HelperCommand extends CommandHandler<Object> {
 			for (int i = 0; i < keys.length; i++) {
 				String arg = keys[i];
 				if(arg.length() < 2) continue;
-				Log.info("Argumet: \"@\" with char \"@\" and value \"@\"", arg, arg.charAt(0), arg.substring(1));
+				ApplicationDiagnosticMessageGateway.info("Argumet: \"@\" with char \"@\" and value \"@\"", arg, arg.charAt(0), arg.substring(1));
 				if(arg.charAt(0) == '+') data.add(arg.substring(1));
 				else if(arg.charAt(0) == '-') data.remove(arg.substring(1));
 			}
@@ -58,7 +58,7 @@ public class HelperCommand extends CommandHandler<Object> {
 			if(code == -1) {
 	            PlayerInfo info = Vars.netServer.admins.playerInfo.get(args[1]);
 	            if(info == null) {
-	                Player found = Game.findPlayer(args[1]);
+	                Player found = MindustryGameRuntimeFacade.findPlayer(args[1]);
 	            	if(found != null) info = Vars.netServer.admins.playerInfo.get(found.uuid());
 	            }
 				if(require(info == null, sender, "[red]Игрок не найден")) return;
@@ -68,7 +68,7 @@ public class HelperCommand extends CommandHandler<Object> {
 				return;
 			}
 
-            Player found = Game.findPlayer(args[1]);
+            Player found = MindustryGameRuntimeFacade.findPlayer(args[1]);
 			if(require(found == null, sender, "[red]Игрок не найден")) return;
 			
 			if(code == 2) {
@@ -93,7 +93,7 @@ public class HelperCommand extends CommandHandler<Object> {
 			}
 			if(args[0].equals("add") || args[0].equals("refresh")) return completePlayers();
 		}
-        Player found = Game.findPlayer(args[0]);
+        Player found = MindustryGameRuntimeFacade.findPlayer(args[0]);
         if(found == null) return null;
         var data = Admins.adminData(found);
         if(data == null) return null;
@@ -111,7 +111,7 @@ public class HelperCommand extends CommandHandler<Object> {
 			list.add((data.has(p.name) ? "-" : "+") + p.name);
 		}
 		
-		Log.info(data.permissionsAsString(' '));
+		ApplicationDiagnosticMessageGateway.info(data.permissionsAsString(' '));
 		CommandsManager.playerCommands().each(c -> {
 			if(!c.admin) return;
 			if(set.contains(c.text)) return;

@@ -1,6 +1,6 @@
 package agzam4.commands.server;
 
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.CommandsManager;
 import agzam4.CommandsManager.CommandSender;
 import agzam4.CommandsManager.ReceiverType;
@@ -18,7 +18,7 @@ public class RestartCommand extends CommandHandler<Object> {
 	public void command(String[] args, CommandSender sender, Object receiver, ReceiverType type) {
 		if(require(args.length != 1, sender, "Перезапуск: [lightgray]" + CommandsManager.needServerRestart)) return;
 		if(args[0].equalsIgnoreCase("force")) {
-			Game.stop();
+			MindustryGameRuntimeFacade.stop();
 			return;
 		}
 		if(args[0].equalsIgnoreCase("on")) {

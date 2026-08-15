@@ -17,10 +17,14 @@ import agzam4.commands.any.*;
 import agzam4.database.Database;
 import agzam4.database.Database.PlayerEntity;
 import agzam4.events.*;
+import agzam4.game.MindustryGameRuntimeFacade;
+import agzam4.game.Images;
 import agzam4.io.ByteBufferIO;
-import agzam4.managers.Kicks;
-import agzam4.managers.Players;
-import agzam4.utils.Log;
+import agzam4.managers.PlayerKickOperationOrchestrator;
+import agzam4.managers.PlayerData;
+import agzam4.managers.ActivePlayerCollectionCoordinator;
+import agzam4.managers.PlayersData;
+import agzam4.utils.ApplicationDiagnosticMessageGateway;
 import arc.Events;
 import arc.func.*;
 import arc.graphics.Color;
@@ -39,7 +43,7 @@ import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.net.Administration.*;
 import mindustry.world.*;
-import static agzam4.Emoji.*;
+import static agzam4.utils.UnicodeEmoticonResolutionProvider.*;
 
 public class CommandsManager {
 
@@ -52,10 +56,8 @@ public class CommandsManager {
 	public static boolean needServerRestart;
 	
 	public static void init() {
-		registerBotCommands();
-		registerPlayersCommands();
-		registerAdminCommands();
-		
+		agzam4.commands.registry.CommandRegistrationBootstrap.bootstrapCommandRegistration();
+
 		Vars.netServer.addBinaryPacketHandler("agzam4.cmd-sug", (player, bs) -> {
 			try {
 				Cons2<Byte, Seq<?>> send = (id,result) -> {
@@ -79,7 +81,7 @@ public class CommandsManager {
 								ByteBufferIO.writeString(res, obj.toString());
 							}
 						}
-						Log.info("sending id: #@", id);
+						ApplicationDiagnosticMessageGateway.info("sending id: #@", id);
 						Call.clientBinaryPacketReliable(player.con, "agzam4.cmd-sug", res.array());
 					}
 				};
@@ -109,19 +111,19 @@ public class CommandsManager {
 				send.get(id, result);
 				
 			} catch (Exception e) {
-				Log.err(e);
+				ApplicationDiagnosticMessageGateway.err(e);
 			}
 		});
 		
 		Events.on(GameOverEvent.class, e -> {
 			if(needServerRestart) {
-				Game.stop();
+				MindustryGameRuntimeFacade.stop();
 			}
 		});
 		
 		Events.on(PlayerLeave.class, e -> {
 			if(e.player == null) return;
-			Bots.notify(NotifyTag.playerConnection, NotifyTag.playerConnection.bungle("left", TelegramBot.strip(e.player.name), Players.joinedAmount()));
+			Bots.notify(NotifyTag.playerConnection, NotifyTag.playerConnection.bungle("left", TelegramBot.strip(e.player.name), ActivePlayerCollectionCoordinator.joinedAmount()));
 			
 			PlayerData data = PlayersData.getData(e.player.uuid());
 			if(data == null || data.disconnectedMessage == null) Call.sendMessage(e.player.coloredName() + "[accent] отключился");
@@ -132,8 +134,8 @@ public class CommandsManager {
 			Call.hideHudText(e.player.con);
     		
     		Bots.notify(NotifyTag.playerConnection,
-    				Strings.format("<b>@</b>@ has joined <i>(@ players)</i>", TelegramBot.strip(e.player.name), (e.player.admin() ? " (admin)":""), Players.joinedAmount()),
-    				Strings.format("<b>@</b>@ has joined <i>(@ players)</i> <code>@</code>", TelegramBot.strip(e.player.name), (e.player.admin() ? " (admin)":""), Players.joinedAmount(), e.player.uuid())
+    				Strings.format("<b>@</b>@ has joined <i>(@ players)</i>", TelegramBot.strip(e.player.name), (e.player.admin() ? " (admin)":""), ActivePlayerCollectionCoordinator.joinedAmount()),
+    				Strings.format("<b>@</b>@ has joined <i>(@ players)</i> <code>@</code>", TelegramBot.strip(e.player.name), (e.player.admin() ? " (admin)":""), ActivePlayerCollectionCoordinator.joinedAmount(), e.player.uuid())
     		);
 			
     		PlayerData data = PlayersData.getData(e.player.uuid());
@@ -188,7 +190,7 @@ public class CommandsManager {
 	                var cores = action.player.team().cores();
 	                for (int i = 0; i < cores.size; i++) {
 	                	if(cores.get(i).dst2(action.tile) <= 500*Vars.tilesize*Vars.tilesize) {
-	                		if(lastThoriumReactorPlayer != action.player) Call.sendMessage("[scarlet]" + emojiAlert + " Внимание " + emojiAlert + " []Игрок [" + Game.colorToHex(action.player.color()) + "]" + action.player.name + " []строит реактор рядом с ядром (" + (int)(World.toTile(cores.get(i).dst(action.tile))) + " блоках от ядра)");
+	                		if(lastThoriumReactorPlayer != action.player) Call.sendMessage("[scarlet]" + emojiAlert + " Внимание " + emojiAlert + " []Игрок [" + MindustryGameRuntimeFacade.colorToHex(action.player.color()) + "]" + action.player.name + " []строит реактор рядом с ядром (" + (int)(World.toTile(cores.get(i).dst(action.tile))) + " блоках от ядра)");
 	                		lastThoriumReactorPlayer = action.player;
 	                		return false;
 	                	}
@@ -214,11 +216,11 @@ public class CommandsManager {
 								if(cy < miny) cy = miny;
 								if(cy > miny + action.block.size-1) cy = miny + action.block.size-1;
 
-//								Log.info("tile: @, @ at @ @", action.tile, action.block, cx, cy);
+//								ApplicationDiagnosticMessageGateway.info("tile: @, @ at @ @", action.tile, action.block, cx, cy);
 								int dx = spawn.x - cx;
 								int dy = spawn.y - cy;
 								if(dx*dx + dy*dy <= trad*trad) return false;
-//								Log.info("Game.effect(Fx.rotateBlock, @, @, 1, Color.red)", cx*Vars.tilesize, cy*Vars.tilesize);
+//								ApplicationDiagnosticMessageGateway.info("MindustryGameRuntimeFacade.effect(Fx.rotateBlock, @, @, 1, Color.red)", cx*Vars.tilesize, cy*Vars.tilesize);
 //								int ctilex = tile.build.tileX() + tile.build.block.sizeOffset;
 //								if(tile.build.tileX() > spawn.x ? tile.x;
 								
@@ -302,17 +304,17 @@ public class CommandsManager {
 		any;
 
 		public String bungle(String name) {
-			return Game.bungleDef("command.response." + name + "." + name(), Game.bungle("command.response." + name));
+			return MindustryGameRuntimeFacade.bungleDef("command.response." + name + "." + name(), MindustryGameRuntimeFacade.bungle("command.response." + name));
 		}
 		
 		public String format(String name, Object... args) {
 			return Strings.format(bungle(name), args);
-//			return Game.bungle("command.response." + name + "." + name(), args);
+//			return MindustryGameRuntimeFacade.bungle("command.response." + name + "." + name(), args);
 		}
 
 		public String err(String name) {
-			if(this == player) return "[red]" + Game.bungle("command.response." + name);
-			return Game.bungle("command.response." + name);
+			if(this == player) return "[red]" + MindustryGameRuntimeFacade.bungle("command.response." + name);
+			return MindustryGameRuntimeFacade.bungle("command.response." + name);
 		}
 		
 	}
@@ -335,7 +337,7 @@ public class CommandsManager {
 		
 		@Override
 		public void sendMessage(String message) {
-			Log.info(message);
+			ApplicationDiagnosticMessageGateway.info(message);
 		}
 		
 		@Override
@@ -585,7 +587,7 @@ public class CommandsManager {
 //				command.description
 //			}
 //		});
-		var handler = AgzamPlugin.clientHandler;
+		var handler = EnterpriseGradeMindustryServerPluginApplicationEntryPoint.clientHandler;
 		
 		playerCommands.each(c -> {
 			if(c.registered) return;
@@ -603,7 +605,7 @@ public class CommandsManager {
 		PlayerCommand cmd = playerCommands.find(c -> c.text.equals(text));
 		if(cmd == null) throw new ArcRuntimeException("Command not found");
 		playerCommands.remove(cmd);
-		if(cmd.registered) AgzamPlugin.clientHandler.removeCommand(text);
+		if(cmd.registered) EnterpriseGradeMindustryServerPluginApplicationEntryPoint.clientHandler.removeCommand(text);
 		cmd.registered = false;
 		return cmd;
 	}
@@ -612,7 +614,7 @@ public class CommandsManager {
 		BaseCommand cmd = serverCommands.find(c -> c.text.equals(text));
 		if(cmd == null) throw new ArcRuntimeException("Command not found");
 		serverCommands.remove(cmd);
-		if(cmd.registered) AgzamPlugin.serverHandler.removeCommand(text);
+		if(cmd.registered) EnterpriseGradeMindustryServerPluginApplicationEntryPoint.serverHandler.removeCommand(text);
 		cmd.registered = false;
 		return cmd;
 	}
@@ -621,13 +623,13 @@ public class CommandsManager {
 		BotCommand cmd = botCommands.find(c -> c.text.equals(text));
 		if(cmd == null) throw new ArcRuntimeException("Command not found");
 		botCommands.remove(cmd);
-		if(cmd.registered) AgzamPlugin.serverHandler.removeCommand(text);
+		if(cmd.registered) EnterpriseGradeMindustryServerPluginApplicationEntryPoint.serverHandler.removeCommand(text);
 		cmd.registered = false;
 		return cmd;
 	}
 	
 	public static void flushServerCommands() {
-		var handler = AgzamPlugin.serverHandler;
+		var handler = EnterpriseGradeMindustryServerPluginApplicationEntryPoint.serverHandler;
 		serverCommands.each(c -> {
 			if(c.registered) return;
 			handler.removeCommand(c.text);
@@ -757,7 +759,7 @@ public class CommandsManager {
 			
 			String uuid = args[0];
 			
-			PlayerEntity entity = Players.joinedEntity(uuid);
+			PlayerEntity entity = ActivePlayerCollectionCoordinator.joinedEntity(uuid);
 			boolean online = true;
 			if(entity == null) {
 				online = false;
@@ -894,13 +896,13 @@ public class CommandsManager {
 	            if(found != null) {
 	    			if(require(Admins.has(found, "votekick"), receiver, "Этот игрок защищен пластаном")) return;
 	    			if(require(Admins.has(found, Permissions.whitelist), receiver, "Этот игрок защищен метастеклом")) return;
-            		Kicks.kick(receiver.user.name, found, reason);
+            		PlayerKickOperationOrchestrator.kick(receiver.user.name, found, reason);
     				receiver.sendMessage("Игрок забанен");
 	            } else {
 	            	receiver.sendMessage("Игрок " + args[0] + " не найден.");
 	            }
 			} catch (Exception e) {
-				Log.err(e);
+				ApplicationDiagnosticMessageGateway.err(e);
 				receiver.sendMessage(e.getLocalizedMessage());
 			}
 		});
@@ -936,7 +938,7 @@ public class CommandsManager {
 		anyCommand(new SkipmapCommand());
 		anyCommand(new SmvoteCommand());
 		anyCommand(new MapinfoCommand());
-		anyCommand(new MapsCommand());
+		anyCommand(new AvailableMapEnumerationCommand());
 		anyCommand(new VoteCommand());
 
 		playerCommand("a", "<сообщение...>", "Сообщение администраторам", (args, player) -> {
@@ -949,7 +951,7 @@ public class CommandsManager {
 
 		playerCommand("pluginfo", "info about pluging", (arg, player) -> {
 			player.sendMessage(""
-					+ "[green] Agzam's plugin " + AgzamPlugin.version() + "\n"
+					+ "[green] Agzam's plugin " + EnterpriseGradeMindustryServerPluginApplicationEntryPoint.version() + "\n"
 					+ "[gray]========================================================\n"
 					+ "[white] Added [royal]skip map[white] commands\n"
 					+ "[white] Added protection from [violet]thorium reactors[white]\n"

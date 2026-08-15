@@ -2,7 +2,7 @@ package agzam4.commands.server;
 
 import agzam4.CommandsManager.ReceiverType;
 import agzam4.CommandsManager.CommandSender;
-import agzam4.Game;
+import agzam4.game.MindustryGameRuntimeFacade;
 import agzam4.commands.CommandHandler;
 import arc.func.Cons;
 import arc.func.Cons2;
@@ -50,7 +50,7 @@ public class InfoCommand extends CommandHandler<Object> {
 		Queue<String> namesQueue = new Queue<>();
 		
 		if(!useNames) {
-			var player = Game.findPlayer(args[0]);
+			var player = MindustryGameRuntimeFacade.findPlayer(args[0]);
 			if(player != null) uuidQueue.add(player.uuid());
 		}
 		

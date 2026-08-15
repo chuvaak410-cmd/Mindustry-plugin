@@ -1,6 +1,6 @@
 package agzam4.commands;
 
-import agzam4.AgzamPlugin;
+import agzam4.EnterpriseGradeMindustryServerPluginApplicationEntryPoint;
 import arc.Core;
 import arc.struct.ObjectSet;
 import arc.util.Nullable;
@@ -15,9 +15,9 @@ public class Server {
 	
 	@SuppressWarnings("unchecked")
 	public static void init() {
-		doorsCap = Core.settings.getInt(AgzamPlugin.name() + "-doors-cap", Integer.MAX_VALUE);
-		discordLink = Core.settings.getString(AgzamPlugin.name() + "-discord-link", null);
-		extrastarUids = Core.settings.getJson(AgzamPlugin.name() + "-extrastar-uids", ObjectSet.class, () -> new ObjectSet<String>());
+		doorsCap = Core.settings.getInt(EnterpriseGradeMindustryServerPluginApplicationEntryPoint.name() + "-doors-cap", Integer.MAX_VALUE);
+		discordLink = Core.settings.getString(EnterpriseGradeMindustryServerPluginApplicationEntryPoint.name() + "-discord-link", null);
+		extrastarUids = Core.settings.getJson(EnterpriseGradeMindustryServerPluginApplicationEntryPoint.name() + "-extrastar-uids", ObjectSet.class, () -> new ObjectSet<String>());
 	}
 	
 }
